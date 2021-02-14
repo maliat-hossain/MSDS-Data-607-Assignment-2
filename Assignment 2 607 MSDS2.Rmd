@@ -1,0 +1,79 @@
+---
+title: "Assignment2 607"
+author: "Maliat"
+date: "2/12/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+```{r}
+setwd("C:/Users/malia/OneDrive/Desktop/MSDS DATA 607")
+library(kableExtra)
+library(RMySQL)
+library(RODBC)
+library(dplyr)
+library(zoo)
+install.packages("rstudioapi")
+library(rstudioapi)
+
+install.packages("imputeTS")
+install.packages("reshape2")
+
+```
+
+```{r}
+user <- rstudioapi::askForPassword("root")
+password <- rstudioapi::askForPassword("Maliat2021")
+conn <- dbConnect(MySQL(), user= "root", password = "Maliat2021", dbname='assignment_2_607', host='localhost')
+```
+
+```{r}
+conn <- dbConnect(MySQL(), user= "root", password = "Maliat2021", dbname='assignment_2_607', host='localhost')
+```
+
+
+
+
+```{r}
+SQLMovieData <- dbGetQuery(conn, "SELECT * FROM assignment_2_607.`movie rating 2`;")
+SQLMovieData
+```
+
+```{r}
+
+SQLMovieData$"Movie 1 Promising Young woman"[is.na(SQLMovieData$"Movie 1 Promising Young woman")]<-mean(SQLMovieData$"Movie 1 Promising Young woman",na.rm = TRUE)
+```
+
+
+```{r}
+SQLMovieData
+```
+```{r}
+library(imputeTS)
+SQLMovieData1<-na_mean(SQLMovieData)
+
+```
+
+```{r}
+library(reshape2)
+ArrangedData <-melt(SQLMovieData1, id.vars = c("Name"))
+names(ArrangedData)[2:3]<- c("Movie", "Rating")
+ArrangedData$Rating<-as.numeric(ArrangedData$Rating)
+ArrangedData
+```
+
+
+```{r}
+library(ggplot2)
+ggplot(data=ArrangedData, aes(x=Rating, y = Movie, fill = Rating, label = Rating))+
+    geom_bar(stat="identity")+ 
+    facet_wrap(~Name)+
+    ggtitle("Movie Ratings by Family and Friends")+
+    theme(axis.text.x = element_blank(),plot.title = element_text(hjust=0.5),legend.position = "right")
+```
+### Standardization will not work here because the ratings belong to same range of numbers. However, if they had different range of numbers, standardization would have been necessary.
